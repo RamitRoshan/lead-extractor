@@ -1,0 +1,32 @@
+# Environment variables (Sensitive data)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+
+# Databases
+*.db
+*.sqlite
+
+# Python virtual environment and caches
+venv/
+.venv/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+backend/logs/
+
+# Frontend dependencies and builds
+node_modules/
+dist/
+.vite/
+.eslintcache
+
+# OS Files
+.DS_Store
+Thumbs.db
