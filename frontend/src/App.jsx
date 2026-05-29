@@ -149,12 +149,24 @@ export default function App() {
     >
       {activeTable ? (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
+            <div>
+              <button
+                onClick={handleNewSession}
+                className="text-xl md:text-2xl font-bold text-slate-100 hover:text-purple-400 transition-colors flex items-center gap-2"
+              >
+                <span className="text-slate-500">←</span> {activeTable.split('_').slice(0, -4).join(' ').replace(/\b\w/g, c => c.toUpperCase())}
+              </button>
+              <div className="mt-1 flex items-center gap-2 text-sm">
+                <span className="text-slate-400">Supabase Table:</span>
+                <span className="text-purple-400 font-mono text-xs">{activeTable}</span>
+              </div>
+            </div>
             <button
               onClick={handleNewSession}
-              className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 hover:underline flex items-center gap-1.5"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-sm shadow-lg shadow-purple-500/20 transition-colors active:scale-95 flex items-center gap-2"
             >
-              ← Back to Dashboard & Search
+              + New Scrape
             </button>
           </div>
           <LeadsTable

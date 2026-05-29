@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Database, Search, HelpCircle, LayoutGrid, Network, Cloud, RefreshCw, Zap } from 'lucide-react';
+import { Menu, X, Database, Search, HelpCircle, LayoutGrid, Network, Cloud, RefreshCw, Zap, Cpu } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function MainLayout({
@@ -56,16 +56,14 @@ export default function MainLayout({
     <div className="flex flex-col h-full bg-slate-950 text-slate-100 border-r border-slate-900">
       {/* Brand Logo & Name */}
       <div className="flex items-center px-6 py-5 border-b border-slate-900 gap-3">
-        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-teal-400 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white">
-          <Network className="w-5 h-5 animate-pulse" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-slate-950 animate-ping"></span>
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-slate-950"></span>
+        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-violet-400 flex items-center justify-center shadow-lg shadow-purple-500/20 text-white">
+          <Cpu className="w-5 h-5" />
         </div>
         <div>
           <h1 className="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-            LeadNexus
+            LeadFlow
           </h1>
-          <span className="text-[9px] text-cyan-400 font-bold tracking-widest uppercase block">
+          <span className="text-[9px] text-slate-400 font-bold tracking-widest uppercase block">
             B2B Data Extractor
           </span>
         </div>
@@ -78,9 +76,9 @@ export default function MainLayout({
             onNewSession();
             setMobileMenuOpen(false);
           }}
-          className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl border border-dashed border-cyan-500/30 dark:border-cyan-500/40 bg-cyan-500/5 hover:bg-cyan-500/10 text-cyan-400 hover:text-cyan-300 font-semibold text-xs tracking-wider uppercase transition-all duration-300 hover:border-solid hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] active:scale-[0.98]"
+          className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-full border border-slate-700 hover:bg-slate-800 text-white font-semibold text-sm transition-all duration-300"
         >
-          <LayoutGrid className="w-4.5 h-4.5" />
+          <LayoutGrid className="w-4 h-4" />
           <span>New Scraping Session</span>
         </button>
       </div>
@@ -110,8 +108,8 @@ export default function MainLayout({
                   }}
                   className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 block group relative overflow-hidden ${
                     isActive
-                      ? 'bg-slate-900 border-cyan-500/40 text-white shadow-[inset_4px_0_0_0_#06b6d4]'
-                      : 'bg-slate-950 border-slate-900/60 hover:bg-slate-900/40 hover:border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-purple-900/20 border-purple-500/30 text-white shadow-sm'
+                      : 'bg-transparent border-transparent hover:bg-slate-900 hover:text-slate-200 text-slate-400'
                   }`}
                 >
                   <div className="font-semibold text-xs truncate max-w-full group-hover:translate-x-0.5 transition-transform duration-200">
@@ -122,7 +120,7 @@ export default function MainLayout({
                     <span className="truncate max-w-[100px] text-slate-600 group-hover:text-slate-500 text-[9px] transition-colors">{item.location || 'urban'}</span>
                   </div>
                   {isActive && (
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_#06b6d4]"></span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
                   )}
                 </button>
               );
@@ -171,12 +169,7 @@ export default function MainLayout({
               <Menu className="w-6 h-6" />
             </button>
             <div className="hidden md:block">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
-                Workspace Node
-              </span>
-              <h2 className="text-xs font-semibold text-slate-300 mt-0.5">
-                Offline Business Discovery Panel
-              </h2>
+              {/* Empty placeholder to match layout */}
             </div>
           </div>
 
@@ -193,9 +186,9 @@ export default function MainLayout({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
-                Tables Created:
+                Tables Created
               </span>
-              <span className="text-xs font-black text-cyan-400 bg-cyan-500/5 px-2 py-0.5 rounded border border-cyan-500/10">
+              <span className="text-xs font-black text-slate-200 px-2 py-0.5">
                 {tablesCount}
               </span>
             </div>
@@ -213,9 +206,9 @@ export default function MainLayout({
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
               </span>
               <span className="text-[10px] font-bold text-slate-300 tracking-wider uppercase flex items-center gap-1.5">
-                <Cloud className="w-3 h-3 text-cyan-400" />
-                <span className="hidden sm:inline">Supabase connected</span>
-                <span className="sm:hidden">DB connected</span>
+                <span className="hidden sm:inline text-emerald-400">Supabase connected</span>
+                <span className="sm:hidden text-emerald-400">DB connected</span>
+                <Cloud className="w-3 h-3 text-emerald-400" />
               </span>
             </div>
           </div>

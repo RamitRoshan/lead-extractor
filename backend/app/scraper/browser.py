@@ -67,7 +67,7 @@ async def scroll_feed(page: Page, max_results: int = 50) -> None:
         # Scroll the feed
         if feed_exists:
             await page.evaluate(f"""
-                const feed = document.querySelector("{FEED_SELECTOR}");
+                const feed = document.querySelector('{FEED_SELECTOR}');
                 if (feed) {{
                     feed.scrollBy(0, 1500);
                 }}
@@ -78,7 +78,7 @@ async def scroll_feed(page: Page, max_results: int = 50) -> None:
         await asyncio.sleep(2.0)
         scroll_attempts += 1
 
-async def extract_lead_details(page: Page) -> Optional[Dict[str, Any]]:
+async def extract_lead_details(page: Page, card: Any = None) -> Optional[Dict[str, Any]]:
     """Extracts business details from the detail panel once opened."""
     try:
         # 1. First check if there is a website link in the detail panel.
@@ -91,14 +91,20 @@ async def extract_lead_details(page: Page) -> Optional[Dict[str, Any]]:
                 return None
                 
         # 2. Extract Business Name
-        name_element = await page.query_selector(NAME_SELECTOR)
-        if not name_element:
-            logger.warning("Could not find business name element.")
-            return None
-        business_name = await name_element.text_content()
-        business_name = business_name.strip() if business_name else ""
-        
+        business_name = ""
+        if card:
+            aria_label = await card.get_attribute("aria-label")
+            if aria_label:
+                business_name = aria_label.strip()
+                
         if not business_name:
+            name_element = await page.query_selector(NAME_SELECTOR)
+            if name_element:
+                business_name = await name_element.text_content()
+                business_name = business_name.strip() if business_name else ""
+                
+        if not business_name:
+            logger.warning("Could not find business name element.")
             return None
             
         # 3. Extract Rating
@@ -245,7 +251,7 @@ async def scrape_google_maps(industry: str, location: str, max_results: int = 50
                     await asyncio.sleep(1.5)
                     
                     # Extract details
-                    details = await extract_lead_details(page)
+                    details = await extract_lead_details(page, card)
                     if details:
                         business_name = details["business_name"]
                         
