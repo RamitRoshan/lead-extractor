@@ -83,12 +83,16 @@ async def get_active_detail_panel(page: Page, expected_name: str = "") -> Any:
     panels = await page.locator('div[role="main"]').all()
     
     if expected_name:
+        expected_lower = expected_name.lower().strip()
         for panel in reversed(panels):
             h1_loc = panel.locator('h1').first
             if await h1_loc.count() > 0:
                 h1_text = await h1_loc.text_content()
-                if h1_text and h1_text.strip() == expected_name:
-                    return panel
+                if h1_text:
+                    h1_lower = h1_text.lower().strip()
+                    if expected_lower in h1_lower or h1_lower in expected_lower:
+                        return panel
+        return None # Explicitly return None if name is provided but not found
 
     # Fallback
     for panel in reversed(panels):
@@ -96,7 +100,7 @@ async def get_active_detail_panel(page: Page, expected_name: str = "") -> Any:
             box = await panel.bounding_box()
             if box and box['x'] >= -100 and box['width'] > 0:
                 return panel
-    return page
+    return None
 
 async def extract_lead_details(page: Page, card: Any = None) -> Optional[Dict[str, Any]]:
     """Extracts business details from the active detail panel."""
@@ -108,7 +112,17 @@ async def extract_lead_details(page: Page, card: Any = None) -> Optional[Dict[st
             if aria_label:
                 business_name = aria_label.strip()
                 
-        panel = await get_active_detail_panel(page, business_name)
+        panel = None
+        # Poll up to 10 times (5 seconds) for the correct panel to appear
+        for _ in range(10):
+            panel = await get_active_detail_panel(page, business_name)
+            if panel is not None:
+                break
+            await asyncio.sleep(0.5)
+            
+        if panel is None:
+            logger.warning(f"Could not load detail panel for '{business_name}' in time.")
+            return None
         
         # 1. Check if there is a website link in the active detail panel.
         website_loc = panel.locator(WEBSITE_SELECTOR).first
