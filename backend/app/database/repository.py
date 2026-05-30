@@ -96,3 +96,23 @@ def get_leads_from_table(table_name: str, db: Session) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Failed to fetch leads from table '{table_name}': {e}")
         return []
+
+def delete_search_history(table_name: str, db: Session) -> bool:
+    """Delete a search history entry and drop its associated dynamic table"""
+    try:
+        # Delete from search_history table
+        entry = db.query(SearchHistory).filter(SearchHistory.table_name == table_name).first()
+        if entry:
+            db.delete(entry)
+            db.commit()
+            
+        # Drop the dynamic table if it exists
+        table = get_dynamic_table(table_name)
+        table.drop(engine, checkfirst=True)
+        
+        logger.info(f"Deleted search history and table '{table_name}'.")
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting search history '{table_name}': {e}")
+        raise e

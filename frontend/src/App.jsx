@@ -137,6 +137,23 @@ export default function App() {
     // but we can clear error states.
   };
 
+  const handleDeleteHistoryItem = async (tableName) => {
+    if (!window.confirm('Are you sure you want to delete this scraping history and its data?')) {
+      return;
+    }
+    try {
+      await apiService.deleteHistory(tableName);
+      if (activeTable === tableName) {
+        setActiveTable('');
+        setScrapedData(null);
+        setLeads([]);
+      }
+      await fetchHistory();
+    } catch (err) {
+      setError(err.message || 'Failed to delete history');
+    }
+  };
+
   return (
     <MainLayout
       history={history}
@@ -146,6 +163,7 @@ export default function App() {
       onDownloadCsv={handleDownloadCsv}
       isHistoryLoading={isHistoryLoading}
       fetchHistory={fetchHistory}
+      onDeleteHistoryItem={handleDeleteHistoryItem}
     >
       {activeTable ? (
         <div className="space-y-6">

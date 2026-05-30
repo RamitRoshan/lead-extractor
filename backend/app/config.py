@@ -32,6 +32,10 @@ class Settings(BaseSettings):
         url = self.DATABASE_URL
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
+            
+        # SQLAlchemy/psycopg2 does not support the pgbouncer=true option
+        url = url.replace("?pgbouncer=true", "").replace("&pgbouncer=true", "")
+        
         return url
 
 settings = Settings()

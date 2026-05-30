@@ -22,3 +22,22 @@ def get_scraping_history(db: Session = Depends(get_db)):
             status_code=500,
             detail="Failed to retrieve search history."
         )
+
+@router.delete("/{table_name}")
+def delete_scraping_history(table_name: str, db: Session = Depends(get_db)):
+    """
+    Deletes a specific historical scrape run and drops its table.
+    """
+    try:
+        success = repository.delete_search_history(table_name, db)
+        if not success:
+            raise HTTPException(status_code=404, detail="History not found.")
+        return {"status": "success", "message": f"Deleted {table_name}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting search history: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete search history."
+        )

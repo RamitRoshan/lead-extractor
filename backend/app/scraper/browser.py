@@ -78,29 +78,51 @@ async def scroll_feed(page: Page, max_results: int = 50) -> None:
         await asyncio.sleep(2.0)
         scroll_attempts += 1
 
+async def get_active_detail_panel(page: Page, expected_name: str = "") -> Any:
+    """Finds the active detail panel which is currently on screen."""
+    panels = await page.locator('div[role="main"]').all()
+    
+    if expected_name:
+        for panel in reversed(panels):
+            h1_loc = panel.locator('h1').first
+            if await h1_loc.count() > 0:
+                h1_text = await h1_loc.text_content()
+                if h1_text and h1_text.strip() == expected_name:
+                    return panel
+
+    # Fallback
+    for panel in reversed(panels):
+        if await panel.locator('h1').count() > 0:
+            box = await panel.bounding_box()
+            if box and box['x'] >= -100 and box['width'] > 0:
+                return panel
+    return page
+
 async def extract_lead_details(page: Page, card: Any = None) -> Optional[Dict[str, Any]]:
-    """Extracts business details from the detail panel once opened."""
+    """Extracts business details from the active detail panel."""
     try:
-        # 1. First check if there is a website link in the detail panel.
-        # If there is a website link, we MUST skip it according to business requirements.
-        website_element = await page.query_selector(WEBSITE_SELECTOR)
-        if website_element:
-            website_url = await website_element.get_attribute("href")
-            if website_url:
-                logger.info(f"Business has website: {website_url}. Skipping.")
-                return None
-                
-        # 2. Extract Business Name
+        # 0. Get business name from card first to find the correct panel
         business_name = ""
         if card:
             aria_label = await card.get_attribute("aria-label")
             if aria_label:
                 business_name = aria_label.strip()
                 
+        panel = await get_active_detail_panel(page, business_name)
+        
+        # 1. Check if there is a website link in the active detail panel.
+        website_loc = panel.locator(WEBSITE_SELECTOR).first
+        if await website_loc.count() > 0:
+            website_url = await website_loc.get_attribute("href")
+            if website_url:
+                logger.info(f"Business has website: {website_url}. Skipping.")
+                return None
+                
+        # 2. Extract Business Name if not already found
         if not business_name:
-            name_element = await page.query_selector(NAME_SELECTOR)
-            if name_element:
-                business_name = await name_element.text_content()
+            name_loc = panel.locator(NAME_SELECTOR).first
+            if await name_loc.count() > 0:
+                business_name = await name_loc.text_content()
                 business_name = business_name.strip() if business_name else ""
                 
         if not business_name:
@@ -109,10 +131,9 @@ async def extract_lead_details(page: Page, card: Any = None) -> Optional[Dict[st
             
         # 3. Extract Rating
         rating = None
-        rating_element = await page.query_selector(RATING_SELECTOR)
-        if rating_element:
-            rating_text = await rating_element.text_content()
-            # E.g. "4.5(234)" or "4.5"
+        rating_loc = panel.locator(RATING_SELECTOR).first
+        if await rating_loc.count() > 0:
+            rating_text = await rating_loc.text_content()
             if rating_text:
                 rating_match = re_search_rating(rating_text)
                 if rating_match:
@@ -120,30 +141,27 @@ async def extract_lead_details(page: Page, card: Any = None) -> Optional[Dict[st
                     
         # 4. Extract Category
         category = ""
-        category_element = await page.query_selector(CATEGORY_SELECTOR)
-        if category_element:
-            category = await category_element.text_content()
+        category_loc = panel.locator(CATEGORY_SELECTOR).first
+        if await category_loc.count() > 0:
+            category = await category_loc.text_content()
             category = category.strip() if category else ""
             
         # 5. Extract Address
         address = ""
-        address_element = await page.query_selector(ADDRESS_SELECTOR)
-        if address_element:
-            # Address text is inside a child div of the button
-            address = await address_element.text_content()
+        address_loc = panel.locator(ADDRESS_SELECTOR).first
+        if await address_loc.count() > 0:
+            address = await address_loc.text_content()
             address = address.strip() if address else ""
             
         # 6. Extract Phone Number
         phone_number = None
-        phone_element = await page.query_selector(PHONE_SELECTOR)
-        if phone_element:
-            data_item_id = await phone_element.get_attribute("data-item-id")
-            # Extract phone from data-item-id="phone:tel:+919876543210" or similar
+        phone_loc = panel.locator(PHONE_SELECTOR).first
+        if await phone_loc.count() > 0:
+            data_item_id = await phone_loc.get_attribute("data-item-id")
             if data_item_id and data_item_id.startswith("phone:tel:"):
                 phone_number = data_item_id.replace("phone:tel:", "").strip()
             else:
-                # Fallback to text content
-                phone_number = await phone_element.text_content()
+                phone_number = await phone_loc.text_content()
                 
         if phone_number:
             phone_number = format_phone_number(phone_number)
@@ -153,7 +171,7 @@ async def extract_lead_details(page: Page, card: Any = None) -> Optional[Dict[st
             "rating": rating,
             "phone_number": phone_number,
             "address": address,
-            "website": None,  # Verified to be None
+            "website": None,
             "category": category,
         }
     except Exception as e:
@@ -233,17 +251,9 @@ async def scrape_google_maps(industry: str, location: str, max_results: int = 50
                     # Scroll card into view
                     await card.scroll_into_view_if_needed()
                     
-                    # Optimization: Check if card itself has a website icon in its children
-                    # In sidebar list, website button has class `l7k75c` or contains website URL.
-                    # Or we can check if there's a link other than google.com in the card container.
-                    # But the safest way is to click and check details panel, or do a fast check first.
-                    # Let's check card text for words like "Website" or presence of a website link
-                    card_html = await card.inner_html()
-                    
-                    # If website is obviously present in card HTML, skip click
-                    if 'Website' in card_html or 'authority' in card_html:
-                        logger.info(f"[{index+1}/{len(cards)}] Website button detected in card HTML. Skipping click.")
-                        continue
+                    # Optimization removed: We now rely purely on checking the detail panel.
+                    # This ensures we don't accidentally skip a business just because the text "Website" 
+                    # appeared in a review or description snippet inside the card HTML.
                     
                     # Click the card to load the details panel
                     await card.click()

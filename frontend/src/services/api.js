@@ -37,6 +37,19 @@ export const apiService = {
   },
 
   /**
+   * Deletes a specific historical search execution and its table
+   * @param {string} tableName 
+   */
+  async deleteHistory(tableName) {
+    try {
+      const response = await apiClient.delete(`/history/${tableName}`);
+      return response.data;
+    } catch (error) {
+      this._handleError(error);
+    }
+  },
+
+  /**
    * Fetches lead records stored under a specific dynamic table name
    * @param {string} tableName 
    */

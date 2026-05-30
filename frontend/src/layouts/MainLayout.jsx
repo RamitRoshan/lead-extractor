@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Database, Search, HelpCircle, LayoutGrid, Network, Cloud, RefreshCw, Zap, Cpu } from 'lucide-react';
+import { Menu, X, Database, Search, HelpCircle, LayoutGrid, Network, Cloud, RefreshCw, Zap, Cpu, Trash2 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function MainLayout({
@@ -10,7 +10,8 @@ export default function MainLayout({
   onNewSession,
   onDownloadCsv,
   isHistoryLoading,
-  fetchHistory
+  fetchHistory,
+  onDeleteHistoryItem
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -100,29 +101,45 @@ export default function MainLayout({
               const formatted = formatSidebarItem(item.table_name);
               const isActive = activeTable === item.table_name;
               return (
-                <button
+                <div
                   key={item.id}
                   onClick={() => {
                     onSelectTable(item.table_name);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 block group relative overflow-hidden ${
+                  className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 block group relative overflow-hidden cursor-pointer ${
                     isActive
                       ? 'bg-purple-900/20 border-purple-500/30 text-white shadow-sm'
                       : 'bg-transparent border-transparent hover:bg-slate-900 hover:text-slate-200 text-slate-400'
                   }`}
                 >
-                  <div className="font-semibold text-xs truncate max-w-full group-hover:translate-x-0.5 transition-transform duration-200">
+                  <div className="font-semibold text-xs truncate max-w-[85%] group-hover:translate-x-0.5 transition-transform duration-200">
                     {formatted.title}
                   </div>
                   <div className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
                     <span className="truncate max-w-[120px] font-mono">{item.leads_count} leads</span>
-                    <span className="truncate max-w-[100px] text-slate-600 group-hover:text-slate-500 text-[9px] transition-colors">{item.location || 'urban'}</span>
+                    <span className="truncate max-w-[80px] text-slate-600 group-hover:text-slate-500 text-[9px] transition-colors">{item.location || 'urban'}</span>
                   </div>
+                  
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onDeleteHistoryItem) {
+                        onDeleteHistoryItem(item.table_name);
+                      }
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-600 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all focus:outline-none"
+                    title="Delete History"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Active Indicator (hides when hovering to show delete button) */}
                   {isActive && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-slate-300 rounded-full group-hover:opacity-0 transition-opacity"></span>
                   )}
-                </button>
+                </div>
               );
             })
           )}
