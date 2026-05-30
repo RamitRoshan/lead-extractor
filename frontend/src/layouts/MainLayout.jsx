@@ -58,11 +58,11 @@ export default function MainLayout({
       {/* Brand Logo & Name */}
       <div className="flex items-center px-6 py-5 border-b border-slate-900 gap-3">
         <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-violet-400 flex items-center justify-center shadow-lg shadow-purple-500/20 text-white">
-          <Cpu className="w-5 h-5" />
+          <Database className="w-5 h-5" />
         </div>
         <div>
           <h1 className="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-            LeadFlow
+            LeadMiner
           </h1>
           <span className="text-[9px] text-slate-400 font-bold tracking-widest uppercase block">
             B2B Data Extractor
